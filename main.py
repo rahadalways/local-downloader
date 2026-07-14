@@ -289,6 +289,57 @@ def trigger_engine_update(background_tasks: BackgroundTasks):
 def get_engine_update_status():
     return update_status
 
+def extract_format_options(info):
+    formats = info.get('formats', [])
+    if not formats:
+        return []
+        
+    options = {}
+    
+    # 1080p size
+    # For YouTube, 1080p is usually adaptive (video only). So we need to add the best audio size to it.
+    best_audio_size = 0
+    for f in formats:
+        if f.get('vcodec') == 'none' and f.get('acodec') != 'none':
+            size = f.get('filesize') or f.get('filesize_approx') or 0
+            if size > best_audio_size:
+                best_audio_size = size
+                
+    video_1080_size = 0
+    video_720_size = 0
+    video_480_size = 0
+    
+    # Pre-merged or separate video formats
+    for f in formats:
+        h = f.get('height')
+        if h:
+            size = f.get('filesize') or f.get('filesize_approx') or 0
+            if h == 1080:
+                if size > video_1080_size:
+                    video_1080_size = size
+            elif h == 720:
+                if size > video_720_size:
+                    video_720_size = size
+            elif h == 480:
+                if size > video_480_size:
+                    video_480_size = size
+                    
+    # Format size strings
+    def size_str(v_size, is_video=True):
+        total = v_size
+        if is_video and v_size > 0 and best_audio_size > 0:
+            total += best_audio_size
+        if total <= 0:
+            return "N/A"
+        return format_size(total)
+        
+    return [
+        {"format_id": "1080p", "label": "Full HD (1080p)", "size": size_str(video_1080_size), "icon": "fa-solid fa-film"},
+        {"format_id": "720p", "label": "HD (720p)", "size": size_str(video_720_size), "icon": "fa-solid fa-video"},
+        {"format_id": "480p", "label": "SD (480p)", "size": size_str(video_480_size), "icon": "fa-solid fa-compact-disc"},
+        {"format_id": "mp3", "label": "Audio Only (MP3)", "size": size_str(best_audio_size, is_video=False), "icon": "fa-solid fa-music"}
+    ]
+
 @app.post("/api/analyze")
 def analyze_url(req: AnalyzeRequest):
     url = req.url.strip()
@@ -309,6 +360,7 @@ def analyze_url(req: AnalyzeRequest):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             parsed = parse_video_info(info)
+            parsed['formats'] = extract_format_options(info)
             return parsed
     except Exception as e:
         err_msg = str(e).split('\n')[0]

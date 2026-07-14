@@ -1024,3 +1024,44 @@ body.dark-theme .modal-content {
         display: none;
     }
 }
+
+/* Format selection options styles */
+.btn-format-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--bg-app);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition-interactive);
+}
+
+.btn-format-option:hover {
+    border-color: var(--brand-color);
+    box-shadow: 0 4px 12px var(--brand-glow);
+    background-color: var(--active-pill);
+    color: var(--brand-color);
+}
+
+.format-option-size {
+    font-size: 0.75rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    color: var(--text-secondary);
+}
+
+body.dark-theme .format-option-size {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.btn-format-option:hover .format-option-size {
+    background-color: var(--brand-color);
+    color: #ffffff;
+}

@@ -37,6 +37,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorText = document.getElementById('error-text');
     const btnCloseError = document.getElementById('btn-close-error');
 
+    // Result Preview Card Elements
+    const analyzeResultCard = document.getElementById('analyze-result-card');
+    const previewThumbnail = document.getElementById('preview-thumbnail');
+    const previewDuration = document.getElementById('preview-duration');
+    const previewTitle = document.getElementById('preview-title');
+    const previewPlatform = document.getElementById('preview-platform');
+    const previewAuthor = document.getElementById('preview-author');
+    const btnClosePreview = document.getElementById('btn-close-preview');
+    const formatOptionsGrid = document.getElementById('format-options-grid');
+
     // Lists
     const activityList = document.getElementById('activity-list');
 
@@ -181,6 +191,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Close Error Banner
     btnCloseError.addEventListener('click', () => {
         analyzeError.classList.add('hidden');
+    });
+
+    // Close Preview Card
+    btnClosePreview.addEventListener('click', () => {
+        analyzeResultCard.classList.add('hidden');
     });
 
     // Settings actions
@@ -389,8 +404,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = inputUrl.value.trim();
         if (!url) return;
 
-        // Clear error box
+        // Clear error box and previous preview
         analyzeError.classList.add('hidden');
+        analyzeResultCard.classList.add('hidden');
 
         // Show Loader
         analyzeLoader.classList.remove('hidden');
@@ -410,28 +426,73 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.detail || 'Analysis failed. Make sure the video is public.');
             }
 
-            // Step 2: Trigger download request using default preferred quality automatically
-            const dlRes = await fetch('/api/download', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    url: url,
-                    format_select: defaultQuality
-                })
-            });
+            // Step 2: Render results in preview panel instead of starting download immediately
+            previewThumbnail.src = data.thumbnail || 'https://placehold.co/600x400/1e293b/e2e8f0?text=No+Thumbnail';
+            previewDuration.textContent = data.duration || '00:00';
+            previewTitle.textContent = data.title || 'Unknown Title';
+            
+            // Map platform icons
+            const pInfo = platformDetails[data.platform] || platformDetails['generic'];
+            previewPlatform.innerHTML = `<i class="${pInfo.icon}"></i> ${pInfo.name}`;
+            previewAuthor.innerHTML = `<i class="fa-regular fa-user"></i> ${data.uploader || 'Channel'}`;
 
-            if (!dlRes.ok) {
-                const dlData = await dlRes.json();
-                throw new Error(dlData.detail || 'Failed to add download to queue.');
+            // Populate options grid
+            formatOptionsGrid.innerHTML = '';
+            if (data.formats && data.formats.length > 0) {
+                data.formats.forEach(f => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-format-option';
+                    btn.innerHTML = `
+                        <span><i class="${f.icon}"></i> &nbsp;${f.label}</span>
+                        <span class="format-option-size">${f.size}</span>
+                    `;
+                    btn.addEventListener('click', async () => {
+                        // Show download start loading on the option button
+                        btn.disabled = true;
+                        btn.innerHTML = `
+                            <span><i class="fa-solid fa-circle-notch animate-spin"></i> &nbsp;Adding to queue...</span>
+                            <span class="format-option-size">${f.size}</span>
+                        `;
+                        try {
+                            const dlRes = await fetch('/api/download', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    url: url,
+                                    format_select: f.format_id
+                                })
+                            });
+
+                            if (!dlRes.ok) {
+                                const dlData = await dlRes.json();
+                                throw new Error(dlData.detail || 'Failed to start download.');
+                            }
+
+                            // Clear input, hide preview
+                            inputUrl.value = '';
+                            handleUrlInput();
+                            analyzeResultCard.classList.add('hidden');
+
+                            // Redirect to downloads tab
+                            await fetchAllData();
+                            switchTab('downloads');
+                        } catch (dlErr) {
+                            alert(dlErr.message);
+                            btn.disabled = false;
+                            btn.innerHTML = `
+                                <span><i class="${f.icon}"></i> &nbsp;${f.label}</span>
+                                <span class="format-option-size">${f.size}</span>
+                            `;
+                        }
+                    });
+                    formatOptionsGrid.appendChild(btn);
+                });
+            } else {
+                formatOptionsGrid.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-muted);">No format options available for this link.</p>';
             }
 
-            // Clear url input field
-            inputUrl.value = '';
-            handleUrlInput();
-
-            // Refresh UI list instantly and switch view to downloads tab to show progress
-            await fetchAllData();
-            switchTab('downloads');
+            // Display result preview card
+            analyzeResultCard.classList.remove('hidden');
 
         } catch (err) {
             errorText.textContent = err.message;
