@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Downloader - Premium Media Downloader</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="light-theme">
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img class="brand-logo-img" src="/static/logo.png" alt="Logo" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                <div class="brand-text">
+                    <h2>Local Downloader</h2>
+                    <span>v1.0.0</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <div class="menu-section">
+                    <h3>LIBRARY</h3>
+                    <ul>
+                        <li class="active" id="menu-home">
+                            <a href="#"><i class="fa-solid fa-house"></i> Home</a>
+                        </li>
+                        <li id="menu-downloads">
+                            <a href="#"><i class="fa-solid fa-download"></i> Downloads</a>
+                        </li>
+                        <li id="menu-history">
+                            <a href="#"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="menu-section">
+                    <h3>PREFERENCES</h3>
+                    <ul>
+                        <li id="menu-settings">
+                            <a href="#"><i class="fa-solid fa-sliders"></i> Settings</a>
+                        </li>
+                        <li id="menu-help">
+                            <a href="#"><i class="fa-regular fa-circle-question"></i> Help & Feedback</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-user">
+                <div class="user-avatar" style="overflow: hidden; padding: 0; background: transparent; border-radius: 50%;">
+                    <img src="/static/logo.png" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div class="user-info" style="display: flex; flex-direction: column; justify-content: center;">
+                    <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;">Developed by</span>
+                    <a href="https://rahadhasan.com" class="external-link" target="_blank" style="text-decoration: none; color: var(--brand-color); font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 3px; transition: var(--transition-interactive);">Rahad Hasan <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.6rem;"></i></a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Window Container -->
+        <div class="main-container">
+            <!-- Top Header -->
+            <header class="app-header">
+                <div class="header-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="input-search-downloads" placeholder="Search downloads...">
+                </div>
+                <div class="header-actions">
+                    <button id="btn-theme-toggle" class="btn-theme-toggle" title="Toggle Light/Dark Theme">
+                        <i class="fa-regular fa-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Scrollable Content Area -->
+            <main class="app-content">
+                <!-- Page Title -->
+                <div class="content-heading">
+                    <h1>New Download</h1>
+                    <p>Enter a video URL to start processing your content in high resolution.</p>
+                </div>
+
+                <!-- Search / Input Card -->
+                <section class="download-input-card">
+                    <div class="url-input-container">
+                        <i class="fa-solid fa-link input-icon"></i>
+                        <input type="text" id="input-url" placeholder="Paste link (YouTube, Facebook, Instagram, TikTok)..." autocomplete="off">
+                        <button id="btn-clear-url" class="btn-clear-url hidden" title="Clear input">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <button id="btn-add-queue" class="btn-add-queue">
+                            Add to Queue <i class="fa-solid fa-circle-plus"></i>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Quick Platform Indicators -->
+                <section class="platform-indicators">
+                    <div class="platform-pill" id="pill-youtube">
+                        <i class="fa-brands fa-youtube" style="color: #ef4444;"></i> YOUTUBE
+                    </div>
+                    <div class="platform-pill" id="pill-facebook">
+                        <i class="fa-brands fa-facebook" style="color: #3b82f6;"></i> FACEBOOK
+                    </div>
+                    <div class="platform-pill" id="pill-instagram">
+                        <i class="fa-brands fa-instagram" style="color: #ec4899;"></i> INSTAGRAM
+                    </div>
+                    <div class="platform-pill" id="pill-tiktok">
+                        <i class="fa-brands fa-tiktok"></i> TIKTOK
+                    </div>
+                </section>
+
+                <!-- Recent Activity Panel -->
+                <section class="activity-section">
+                    <div class="activity-header">
+                        <h2>Recent Activity</h2>
+                        <button id="btn-clear-history-ui" class="btn-clear-history hidden">CLEAR ALL</button>
+                    </div>
+
+                    <!-- Loader & Errors inside dashboard flow -->
+                    <div id="analyze-loader" class="loader-card hidden">
+                        <div class="spinner"></div>
+                        <p>Analyzing media source details...</p>
+                    </div>
+
+                    <div id="analyze-error" class="error-card hidden">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="error-text">An error occurred while fetching video info.</span>
+                        <button id="btn-close-error"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <!-- Dynamic Recent Downloads List -->
+                    <div id="activity-list" class="activity-list">
+                        <!-- Filled dynamically by JavaScript -->
+                        <div class="empty-state">
+                            <i class="fa-solid fa-download"></i>
+                            <p>No active or completed downloads. Paste a link above to get started!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Bottom Stats Cards -->
+                <section class="stats-section">
+                    <div class="stat-card">
+                        <div class="stat-icon icon-blue">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-label">SERVER SPEED</span>
+                            <h3 class="stat-value" id="stat-speed">Uncapped</h3>
+                            <span class="stat-subtext" id="stat-speed-sub">Local gigabit download enabled</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon icon-purple">
+                            <i class="fa-regular fa-folder-closed"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-label">TOTAL SAVED</span>
+                            <h3 class="stat-value" id="stat-files">0 Files</h3>
+                            <span class="stat-subtext" id="stat-size-sub">0 B disk storage saved</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon icon-green">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-label">SECURITY</span>
+                            <h3 class="stat-value">Encrypted</h3>
+                            <span class="stat-subtext">Direct P2P download links</span>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Bottom Status Bar -->
+            <footer class="app-status-bar">
+                <div class="status-item">
+                    <span class="status-dot"></span> ALL SYSTEMS ONLINE
+                </div>
+                <div class="status-item" id="status-storage">
+                    <i class="fa-solid fa-hard-drive"></i> STORAGE: LOADING...
+                </div>
+                <div class="status-item">
+                    <i class="fa-solid fa-earth-americas"></i> REGION: LOCALHOST
+                </div>
+                <div class="status-item" id="status-engine">
+                    <i class="fa-solid fa-circle-info"></i> ENGINE: READY
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel animate-scale-in">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-sliders"></i> Settings</h2>
+                <button id="btn-close-modal" class="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <label for="input-download-dir">Download Path</label>
+                    <div class="dir-input-wrapper">
+                        <input type="text" id="input-download-dir" placeholder="Loading download directory...">
+                    </div>
+                    <p class="settings-help">The directory where all downloaded videos will be saved. Must be an absolute path on this PC.</p>
+                </div>
+                <div class="settings-group">
+                    <label for="select-browser-cookies">Browser Cookies for Authentication</label>
+                    <div class="dir-input-wrapper">
+                        <select id="select-browser-cookies">
+                            <option value="none">Disabled (No cookies)</option>
+                            <option value="chrome">Google Chrome</option>
+                            <option value="edge">Microsoft Edge</option>
+                            <option value="firefox">Mozilla Firefox</option>
+                            <option value="brave">Brave Browser</option>
+                        </select>
+                    </div>
+                    <p class="settings-help">Imports cookies from the selected browser locally to bypass login blocks (e.g. on Instagram and Facebook).</p>
+                </div>
+                <div class="settings-group">
+                    <label for="select-default-quality">Default Download Quality</label>
+                    <div class="dir-input-wrapper">
+                        <select id="select-default-quality" style="width: 100%; height:42px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:0 0.75rem; color:var(--text-primary); outline:none;">
+                            <option value="best">Best Available (Highest Quality)</option>
+                            <option value="1080p">Full HD (1080p)</option>
+                            <option value="720p">HD (720p - Fast, no merging)</option>
+                            <option value="480p">SD (480p - Small size)</option>
+                            <option value="mp3">Audio Only (MP3)</option>
+                        </select>
+                    </div>
+                    <p class="settings-help">Preferred quality used automatically when clicking 'Add to Queue'.</p>
+                </div>
+                <div class="settings-group">
+                    <label for="input-browser-proxy">HTTP/SOCKS5 Proxy (Optional)</label>
+                    <div class="dir-input-wrapper">
+                        <input type="text" id="input-browser-proxy" placeholder="e.g. http://127.0.0.1:8080 or socks5://127.0.0.1:1080">
+                    </div>
+                    <p class="settings-help">Route download traffic through a proxy server if your IP is rate-limited.</p>
+                </div>
+                <div class="settings-group" style="border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+                    <label>Downloader Core Engine</label>
+                    <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 0.25rem;">
+                        <button id="btn-update-engine" class="btn btn-secondary" style="height: 42px; flex-grow: 1;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Update Downloader Engine
+                        </button>
+                    </div>
+                    <p id="engine-update-text" class="settings-help" style="color: var(--success-color); font-weight: 500; margin-top: 0.4rem; display: none;">Updating engine, please wait...</p>
+                </div>
+                <button id="btn-save-settings" class="btn btn-primary" style="width: 100%; height: 42px; font-weight: 700;">Save Settings</button>
+                <div id="settings-message" class="settings-message hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel animate-scale-in" style="max-width: 550px;">
+            <div class="modal-header">
+                <h2><i class="fa-regular fa-circle-question"></i> Help & Feedback</h2>
+                <button id="btn-close-help" class="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="font-size: 0.95rem; line-height: 1.5; color: var(--text-secondary);">
+                <p style="margin-bottom: 1rem;"><strong>Local Downloader</strong> is a standalone media retrieval utility running entirely on your local machine.</p>
+                <h4 style="color: var(--text-primary); margin: 1rem 0 0.5rem 0; font-size: 1rem;">Troubleshooting Downloads:</h4>
+                <ul style="padding-left: 1.25rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                    <li><strong>Instagram/Facebook blocks</strong>: Open settings, select Chrome or Edge in cookies to authenticate.</li>
+                    <li><strong>Slow Speeds</strong>: Make sure your internet connection is active. Some platforms limit download speed on non-authenticated requests.</li>
+                    <li><strong>Invalid Links</strong>: Verify that the video is public and accessible without a custom invitation link.</li>
+                </ul>
+                <h4 style="color: var(--text-primary); margin: 1rem 0 0.5rem 0; font-size: 1rem;">System Dependencies:</h4>
+                <p>Features standard integration with <strong>FFmpeg</strong> to automatically mux separate audio/video feeds for 1080p and higher qualities.</p>
+                <h4 style="color: var(--text-primary); margin: 1rem 0 0.5rem 0; font-size: 1rem;">Developer & Credits:</h4>
+                <p>Developed and designed by <a href="https://rahadhasan.com" class="external-link" target="_blank" style="color: var(--brand-color); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;">Rahad Hasan <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem;"></i></a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

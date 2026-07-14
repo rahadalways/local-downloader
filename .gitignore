@@ -1,0 +1,14 @@
+# Python Caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# User Configurations and History
+config.json
+history.json
+
+# Compilation Outputs
+build/
+dist/LocalDownloader.exe
+*.spec
