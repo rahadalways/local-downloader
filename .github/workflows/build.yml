@@ -29,12 +29,11 @@ jobs:
       run: |
         python build_app.py
 
-    - name: Create Installation Package Zip
-      run: |
-        Compress-Archive -Path dist/LocalDownloader.exe, SetupInstaller.bat, install.ps1 -DestinationPath LocalDownloader-Setup.zip
-
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: LocalDownloader-Windows-Setup
-        path: LocalDownloader-Setup.zip
+        path: |
+          dist/LocalDownloader.exe
+          SetupInstaller.bat
+          install.ps1
